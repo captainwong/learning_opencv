@@ -9,7 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "2_opencv_examples", "2_open
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "3_highgui", "3_highgui\3_highgui.vcxproj", "{A4B102BD-1AF6-4F6F-98D2-D16A7D6EB8A9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "4_basic_ds_and_drawing", "4_basic_ds_and_drawing\4_basic_ds_and_drawing.vcxproj", "{3BCE5BE0-DE7D-4A3B-B183-4F567C4022FC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "4_imgproc", "4_imgproc\4_imgproc.vcxproj", "{3BCE5BE0-DE7D-4A3B-B183-4F567C4022FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
