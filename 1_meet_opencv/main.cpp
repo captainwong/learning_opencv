@@ -75,7 +75,7 @@ void test_capture_camera()
 
 int main()
 {
-	cout << "Hello OpenCV!" << endl;
+	cout << "Hello OpenCV! " << CV_VERSION << endl;
 
 	Mat img = imread(image_name);
 	hello_opencv(img);
