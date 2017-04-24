@@ -175,7 +175,8 @@ vector<color_reduce_impls> reduces = {
 		})
 	},
 
-	{
+	{ 
+		// fastest solution
 		"【方法八】利用 .ptr 和 *++ 以及位运算(continuous + channels)",
 		new color_reduce_impl1([](Mat& src, int div = 64) {
 			int lines = src.rows; 
@@ -356,7 +357,69 @@ void test()
 }
 
 
+// 5.2
+namespace basic_graph_blend {
+
+bool roi_linear_blend()
+{
+	Mat src = imread("dota_pa.jpg", CV_LOAD_IMAGE_COLOR);
+	Mat logo = imread("dota_logo.jpg", CV_LOAD_IMAGE_COLOR);
+	if (!src.data || !logo.data) {
+		return false;
+	}
+
+	Mat roi = src(Rect(200, 250, logo.cols, logo.rows));
+	addWeighted(roi, 0.5, logo, 0.3, 0, roi);
+	imshow("roi linear blend", src);
+	return true;
+}
+
+bool roi_add_image()
+{
+	Mat src = imread("dota_pa.jpg", CV_LOAD_IMAGE_COLOR);
+	Mat logo = imread("dota_logo.jpg", CV_LOAD_IMAGE_COLOR);
+	if (!src.data || !logo.data) {
+		return false;
+	}
+
+	Mat roi = src(Rect(200, 250, logo.cols, logo.rows));
+	Mat mask = imread("dota_logo.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+
+	logo.copyTo(roi, mask);
+	imshow("roi blending", src);
+	return true;
+}
+
+bool linear_blending()
+{
+	double alpha = 0.5;
+	double beta = 1.0 - alpha;
+
+	Mat src1, src2, dst;
+	src1 = imread("mogu.jpg");
+	src2 = imread("rain.jpg");
+	if (!src1.data || !src2.data) {
+		return false;
+	}
+
+	addWeighted(src1, alpha, src2, beta, 0, dst);
+	imshow("linear blending origin", src1);
+	imshow("linear blending result", dst);
+	return true;
+}
+
+void test()
+{
+	roi_linear_blend();
+	roi_add_image();
+	linear_blending();
+	waitKey();
+}
+
+}
+
 int main()
 {
-	access_pixel::test();
+	//access_pixel::test();
+	basic_graph_blend::test();
 }
