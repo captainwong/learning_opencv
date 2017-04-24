@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3BCE5BE0-DE7D-4A3B-B183-4F567C4022FC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>My4_basic_ds_and_drawing</RootNamespace>
+    <RootNamespace>My4_imgproc</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
     <ProjectName>4_imgproc</ProjectName>
   </PropertyGroup>
