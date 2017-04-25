@@ -536,7 +536,56 @@ void test()
 // 5.5
 namespace discrete_fourier_transform {
 
+void test()
+{
+	Mat src = imread("dfs.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	imshow("origin", src);
 
+	int r = getOptimalDFTSize(src.rows);
+	int c = getOptimalDFTSize(src.cols);
+
+	Mat padded;
+	copyMakeBorder(src, padded, 0, r - src.rows, 0, c - src.cols, BORDER_CONSTANT, Scalar::all(0));
+
+	Mat planes[] = { Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F) };
+	Mat complex_i;
+	merge(planes, 2, complex_i);
+	dft(complex_i, complex_i);
+	split(complex_i, planes);
+
+
+	Mat magnituded_img;
+	magnitude(planes[0], planes[1], magnituded_img);
+	log(magnituded_img + Scalar::all(1), magnituded_img);
+
+	magnituded_img = magnituded_img(Rect(0, 0, magnituded_img.cols & -2, magnituded_img.rows & -2));
+
+	int cx = magnituded_img.cols / 2;
+	int cy = magnituded_img.rows / 2;
+
+	Mat q0(magnituded_img, Rect(0, 0, cx, cy));
+	Mat q1(magnituded_img, Rect(cx, 0, cx, cy));
+	Mat q2(magnituded_img, Rect(0, cy, cx, cy));
+	Mat q3(magnituded_img, Rect(cx, cy, cx, cy));
+
+	//swap(q0, q3);
+	//swap(q1, q2);
+
+	Mat tmp;
+	q0.copyTo(tmp);
+	q3.copyTo(q0);
+	tmp.copyTo(q3);
+
+	q1.copyTo(tmp);
+	q2.copyTo(q1);
+	tmp.copyTo(q2);
+
+	normalize(magnituded_img, magnituded_img, 0.0, 1.0, NORM_MINMAX);
+
+	imshow("magnituded image", magnituded_img);
+
+	waitKey();
+}
 
 }
 
@@ -550,5 +599,7 @@ int main()
 
 	//multi_channel_blend::test();
 
-	adjust_contrast_and_bright::test();
+	//adjust_contrast_and_bright::test();
+
+	discrete_fourier_transform::test();
 }
