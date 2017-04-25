@@ -467,6 +467,68 @@ void test()
 
 }
 
+namespace adjust_contrast_and_bright {
+
+int g_contrast = 0;
+int g_bright = 0;
+Mat g_src, g_dst;
+
+auto winname_origin = "adjust contrast and bright origin";
+auto winname_result = "adjust contrast and bright result";
+
+void on_track_bar(int, void*)
+{
+	int rows = g_src.rows;
+	int cols = g_src.cols;
+
+	if (g_src.isContinuous() && g_dst.isContinuous()) {
+		cols *= rows;
+		rows = 1;
+	}
+
+	for (int y = 0; y < rows; y++) {
+		auto sdata = g_src.ptr<uchar>(y);
+		auto ddata = g_dst.ptr<uchar>(y);
+		for (int x = 0; x < cols; x++) {
+			for (int c = 0; c < 3; c++) {
+				//g_dst.at<Vec3b>(y, x)[c] = saturate_cast<uchar>((g_contrast*0.01) * (g_src.at<Vec3b>(y, x)[c]) + g_bright);
+
+				*ddata++ = saturate_cast<uchar>((g_contrast*0.01) * (*sdata++) + g_bright);
+			}
+		}
+	}
+
+	imshow(winname_origin, g_src);
+	imshow(winname_result, g_dst);
+}
+
+void test()
+{
+	g_src = imread("1.jpg");
+
+	g_dst = Mat::zeros(g_src.size(), g_src.type());
+
+	g_contrast = 80;
+	g_bright = 80;
+
+	namedWindow(winname_origin, CV_WINDOW_NORMAL);
+	resizeWindow(winname_origin, 800, 600);
+	moveWindow(winname_origin, 0, 0);
+	imshow(winname_origin, g_src);
+	
+	
+	namedWindow(winname_result, CV_WINDOW_NORMAL);
+	resizeWindow(winname_result, 800, 600);
+	moveWindow(winname_result, 805, 0);
+	createTrackbar("contrast: ", winname_result, &g_contrast, 300, on_track_bar);
+	createTrackbar("bright  : ", winname_result, &g_bright, 200, on_track_bar);
+
+	on_track_bar(0, nullptr);
+	while ('q' != waitKey());
+}
+
+}
+
 
 int main()
 {
@@ -474,5 +536,7 @@ int main()
 
 	//basic_graph_blend::test();
 
-	multi_channel_blend::test();
+	//multi_channel_blend::test();
+
+	adjust_contrast_and_bright::test();
 }
