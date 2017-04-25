@@ -12,7 +12,7 @@
 using namespace std;
 using namespace cv;
 
-// 5.1.5
+// 5.1
 namespace access_pixel {
 
 const int NITERATIONS = 20;
@@ -467,6 +467,8 @@ void test()
 
 }
 
+
+// 5.4
 namespace adjust_contrast_and_bright {
 
 int g_contrast = 0;
@@ -504,22 +506,23 @@ void on_track_bar(int, void*)
 
 void test()
 {
-	g_src = imread("1.jpg");
+	g_src = imread("1.png");
 
 	g_dst = Mat::zeros(g_src.size(), g_src.type());
 
 	g_contrast = 80;
 	g_bright = 80;
 
-	namedWindow(winname_origin, CV_WINDOW_NORMAL);
-	resizeWindow(winname_origin, 800, 600);
+	namedWindow(winname_origin);
+	//resizeWindow(winname_origin, 800, 600);
 	moveWindow(winname_origin, 0, 0);
 	imshow(winname_origin, g_src);
 	
 	
-	namedWindow(winname_result, CV_WINDOW_NORMAL);
-	resizeWindow(winname_result, 800, 600);
-	moveWindow(winname_result, 805, 0);
+	namedWindow(winname_result);
+	//resizeWindow(winname_result, 800, 600);
+	//moveWindow(winname_result, 805, 0);
+	moveWindow(winname_result, g_src.cols, 0);
 	createTrackbar("contrast: ", winname_result, &g_contrast, 300, on_track_bar);
 	createTrackbar("bright  : ", winname_result, &g_bright, 200, on_track_bar);
 
@@ -528,6 +531,15 @@ void test()
 }
 
 }
+
+
+// 5.5
+namespace discrete_fourier_transform {
+
+
+
+}
+
 
 
 int main()
