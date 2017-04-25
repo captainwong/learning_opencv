@@ -362,8 +362,8 @@ namespace basic_graph_blend {
 
 bool roi_linear_blend()
 {
-	Mat src = imread("dota_pa.jpg", CV_LOAD_IMAGE_COLOR);
-	Mat logo = imread("dota_logo.jpg", CV_LOAD_IMAGE_COLOR);
+	Mat src = imread("dota_pa.jpg");
+	Mat logo = imread("dota_logo.jpg");
 	if (!src.data || !logo.data) {
 		return false;
 	}
@@ -376,8 +376,8 @@ bool roi_linear_blend()
 
 bool roi_add_image()
 {
-	Mat src = imread("dota_pa.jpg", CV_LOAD_IMAGE_COLOR);
-	Mat logo = imread("dota_logo.jpg", CV_LOAD_IMAGE_COLOR);
+	Mat src = imread("dota_pa.jpg");
+	Mat logo = imread("dota_logo.jpg");
 	if (!src.data || !logo.data) {
 		return false;
 	}
@@ -418,8 +418,61 @@ void test()
 
 }
 
+
+// 5.3
+namespace multi_channel_blend {
+
+void test()
+{
+	const double alpha = 0.5;
+	const double beta = 1.0 - alpha;
+	const double gamma = 0.;
+
+	Mat src = imread("dota_jugg.jpg");
+	Mat logo = imread("dota_logo.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+
+	vector<Mat> channels;
+	split(src, channels);
+
+	Mat blue_channel = channels.at(0);
+	addWeighted(blue_channel(Rect(500, 250, logo.cols, logo.rows)), 
+				alpha, logo, beta, gamma,
+				blue_channel(Rect(500, 250, logo.cols, logo.rows)));
+
+	merge(channels, src);
+	imshow("origin blue channel merge with logo", src);
+
+
+	src = imread("dota_jugg.jpg");
+	split(src, channels);
+	Mat green_channel = channels.at(1);
+	addWeighted(green_channel(Rect(500, 250, logo.cols, logo.rows)),
+				alpha, logo, beta, gamma,
+				green_channel(Rect(500, 250, logo.cols, logo.rows)));
+	merge(channels, src);
+	imshow("origin green channel merge with logo", src);
+
+
+	src = imread("dota_jugg.jpg");
+	split(src, channels);
+	Mat red_channel = channels.at(2);
+	addWeighted(red_channel(Rect(500, 250, logo.cols, logo.rows)),
+				alpha, logo, beta, gamma,
+				red_channel(Rect(500, 250, logo.cols, logo.rows)));
+	merge(channels, src);
+	imshow("origin red channel merge with logo", src);
+
+	waitKey();
+}
+
+}
+
+
 int main()
 {
 	//access_pixel::test();
-	basic_graph_blend::test();
+
+	//basic_graph_blend::test();
+
+	multi_channel_blend::test();
 }
