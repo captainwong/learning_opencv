@@ -1,4 +1,6 @@
-﻿#include <iostream>
+﻿#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
 
 #pragma warning(push)
 #pragma warning(disable:4819)
@@ -590,6 +592,83 @@ void test()
 }
 
 
+// 5.6 
+namespace xml_and_yaml_io {
+
+auto filename = "test.yaml";
+
+void test_write()
+{
+	FileStorage fs(filename, FileStorage::WRITE);
+	fs << "frame_count" << 5;
+	time_t raw_time;
+	time(&raw_time);
+	fs << "calibration_date" << asctime(localtime(&raw_time));
+
+	Mat camera_matrix = (Mat_<double>(3, 3) << 1000, 0, 320, 0, 1000, 240, 0, 0, 1);
+	Mat dist_coeffs = (Mat_<double>(5, 1) << 0.1, 0.01, -0.001, 0, 0);
+	fs << "camera_matrix" << camera_matrix << "dist_coeffs" << dist_coeffs;
+
+	fs << "features" << "[";
+	for (int i = 0; i < 3; i++) {
+		int x = rand() % 640;
+		int y = rand() % 480;
+		uchar lbp = rand() % 256;
+
+		fs << "{:" << "x" << x << "y" << y << "lbp" << "[:";
+		for (int j = 0; j < 8; j++) {
+			fs << ((lbp >> j) & 1);
+		}
+
+		fs << "]" << "}";
+	}
+
+	fs << "]";
+}
+
+void test_read()
+{
+	FileStorage fs(filename, FileStorage::READ);
+
+	int frame_count = fs["frame_count"];
+
+	string date;
+	fs["calibration_date"] >> date;
+
+	Mat camera_matrix, dist_coeffs;
+	fs["camera_matrix"] >> camera_matrix;
+	fs["dist_coeffs"] >> dist_coeffs;
+
+	cout << "frame count:" << frame_count << endl
+		<< "calibration date: " << date << endl
+		<< "camera matrix: " << camera_matrix << endl
+		<< "distortion coeffs: " << dist_coeffs << endl;
+
+	FileNode features = fs["features"];
+	int idx = 0;
+	vector<uchar> lbps;
+
+	for (auto iter = features.begin(); iter != features.end(); iter++, idx++) {
+		cout << "feature #" << idx << ": ";
+		cout << "x=" << (int)(*iter)["x"] << ", y=" << (int)(*iter)["y"] << ", lbp: (";
+		(*iter)["lbp"] >> lbps;
+		for (auto lbp : lbps) {
+			cout << " " << (int)lbp;
+		}
+		cout << ")" << endl;
+	}
+}
+
+void test()
+{
+	test_write();
+	system("pause");
+	test_read();
+	system("pause");
+}
+
+}
+
 
 int main()
 {
@@ -601,5 +680,7 @@ int main()
 
 	//adjust_contrast_and_bright::test();
 
-	discrete_fourier_transform::test();
+	//discrete_fourier_transform::test();
+
+	xml_and_yaml_io::test();
 }
