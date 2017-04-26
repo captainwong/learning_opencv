@@ -78,6 +78,7 @@ void on_bilateral(int, void*)
 
 } // end of namespace non_linear_filters 
 
+
 void test(const char* img_name)
 {
 	using namespace linear_filters;
@@ -116,11 +117,60 @@ void test(const char* img_name)
 	while ('q' != waitKey());
 }
 
+}
+
+
+// 6.3
+namespace morphology {
+
+Mat g_src, g_dst;
+
+// 0 for erode, 1 for dilate
+int g_erode_or_dilate = 0;
+
+int g_structuring_element_size = 3;
+
+auto win_dst = "result";
+
+void on_process(int, void*)
+{
+	Mat element = getStructuringElement(MORPH_RECT,
+										Size(2 * g_structuring_element_size + 1, 2 * g_structuring_element_size + 1),
+										Point(g_structuring_element_size, g_structuring_element_size));
+
+	if (g_erode_or_dilate == 0) {
+		erode(g_src, g_dst, element);
+	} else {
+		dilate(g_src, g_dst, element);
+	}
+
+	imshow(win_dst, g_dst);
+}
+
+void test(const char* img_name)
+{
+	g_src = imread(img_name);
+	imshow("origin", g_src);
+
+	Mat element = getStructuringElement(MORPH_RECT, 
+										Size(2 * g_structuring_element_size + 1, 2 * g_structuring_element_size + 1),
+										Point(g_structuring_element_size, g_structuring_element_size));
+
+	erode(g_src, g_dst, element);
+	imshow(win_dst, g_dst);
+
+	createTrackbar("erode/dilate", win_dst, &g_erode_or_dilate, 1, on_process);
+	createTrackbar("kernel", win_dst, &g_structuring_element_size, 21, on_process);
+
+	while ('q' != waitKey());
+}
 
 }
 
+
 int main()
 {
-	filters::test("filters_2.jpg");
+	//filters::test("filters_2.jpg");
 
+	morphology::test("morphology.jpg");
 }
