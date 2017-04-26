@@ -14,11 +14,15 @@
 using namespace std;
 using namespace cv;
 
+// 6.1 & 6.2
+namespace filters {
+
+Mat g_src;
 
 // 6.1
 namespace linear_filters {
 
-Mat g_src, g_box_img, g_mean_img, g_gaussian_img;
+Mat g_box_img, g_mean_img, g_gaussian_img;
 
 int g_box = 3;
 int g_mean = 3;
@@ -46,13 +50,46 @@ void on_gaussian(int, void*)
 	imshow(win_gaussian, g_gaussian_img);
 }
 
-void test()
+} // end of namespace linear_filters
+
+
+// 6.2
+namespace non_linear_filters {
+
+Mat g_median_img, g_bilateral_img;
+
+int g_median = 10;
+int g_bilateral = 10;
+
+auto win_median = "median blur";
+auto win_bilateral = "bilateral filter";
+
+void on_median(int, void*)
 {
-	g_src = imread("filters.jpg", CV_LOAD_IMAGE_COLOR);
+	medianBlur(g_src, g_median_img, g_median * 2 + 1);
+	imshow(win_median, g_median_img);
+}
+
+void on_bilateral(int, void*)
+{
+	bilateralFilter(g_src, g_bilateral_img, g_bilateral, g_bilateral * 2, g_bilateral / 2);
+	imshow(win_bilateral, g_bilateral_img);
+}
+
+} // end of namespace non_linear_filters 
+
+void test(const char* img_name)
+{
+	using namespace linear_filters;
+	using namespace non_linear_filters;
+
+	g_src = imread(img_name, CV_LOAD_IMAGE_COLOR);
 
 	g_box_img = g_src.clone();
 	g_mean_img = g_src.clone();
 	g_gaussian_img = g_src.clone();
+	g_median_img = g_src.clone();
+	g_bilateral_img = g_src.clone();
 
 	imshow("origin", g_src);
 
@@ -68,14 +105,22 @@ void test()
 	createTrackbar("kernel: ", win_gaussian, &g_gaussian, 40, on_gaussian);
 	on_gaussian(g_gaussian, nullptr);
 
+	namedWindow(win_median);
+	createTrackbar("param: ", win_median, &g_median, 50, on_median);
+	on_median(g_median, nullptr);
+
+	namedWindow(win_bilateral);
+	createTrackbar("param: ", win_bilateral, &g_bilateral, 50, on_bilateral);
+	on_bilateral(g_bilateral, nullptr);
+
 	while ('q' != waitKey());
 }
 
-}
 
+}
 
 int main()
 {
-	linear_filters::test();
+	filters::test("filters_2.jpg");
 
 }
