@@ -120,8 +120,10 @@ void test(const char* img_name)
 }
 
 
-// 6.3
 namespace morphology {
+
+// 6.3
+namespace eorde_and_dilate {
 
 Mat g_src, g_dst;
 
@@ -152,7 +154,7 @@ void test(const char* img_name)
 	g_src = imread(img_name);
 	imshow("origin", g_src);
 
-	Mat element = getStructuringElement(MORPH_RECT, 
+	Mat element = getStructuringElement(MORPH_RECT,
 										Size(2 * g_structuring_element_size + 1, 2 * g_structuring_element_size + 1),
 										Point(g_structuring_element_size, g_structuring_element_size));
 
@@ -168,9 +170,89 @@ void test(const char* img_name)
 }
 
 
+// 6.4 
+namespace comprehensive {
+
+Mat g_src, g_dst;
+
+int g_element_shape = MORPH_RECT;
+
+int g_trackbar_pos = 10;
+
+auto win_origin = "origin";
+auto win_erode = "erode";
+auto win_dilate = "dilate";
+auto win_open = "open = erode + dilate";
+auto win_close = "close = dilate + erode";
+auto win_gradient = "gradient = dilate - erode";
+auto win_tophat = "top hat = src - open";
+auto win_blackhat = "black hat = close - src";
+
+void on_trackbar(int, void*)
+{
+	Mat element = getStructuringElement(g_element_shape,
+										Size(g_trackbar_pos * 2 + 1, g_trackbar_pos * 2 + 1),
+										Point(g_trackbar_pos, g_trackbar_pos));
+
+	morphologyEx(g_src, g_dst, MORPH_ERODE, element);
+	imshow(win_erode, g_dst);
+
+	morphologyEx(g_src, g_dst, MORPH_DILATE, element);
+	imshow(win_dilate, g_dst);
+
+	morphologyEx(g_src, g_dst, MORPH_OPEN, element);
+	imshow(win_open, g_dst);
+
+	morphologyEx(g_src, g_dst, MORPH_CLOSE, element);
+	imshow(win_close, g_dst);
+
+	morphologyEx(g_src, g_dst, MORPH_GRADIENT, element);
+	imshow(win_gradient, g_dst);
+
+	morphologyEx(g_src, g_dst, MORPH_TOPHAT, element);
+	imshow(win_tophat, g_dst);
+
+	morphologyEx(g_src, g_dst, MORPH_BLACKHAT, element);
+	imshow(win_blackhat, g_dst);
+}
+
+void test(const char* img_name)
+{
+	namedWindow(win_origin);
+	createTrackbar("pos", win_origin,&g_trackbar_pos, 20, on_trackbar);
+	g_src = imread(img_name);
+	imshow(win_origin, g_src);
+
+	while (true) {
+		on_trackbar(g_trackbar_pos, nullptr);
+
+		int c = waitKey();
+		if ('q' == c || 27 == c) {
+			break;
+		} else if ('0' == c) {
+			g_element_shape = MORPH_RECT;
+		} else if ('1' == c) {
+			g_element_shape = MORPH_CROSS;
+		} else if ('2' == c) {
+			g_element_shape = MORPH_ELLIPSE;
+		} else if (' ' == c) {
+			g_element_shape = (g_element_shape + 1) % 3;
+		}
+	}
+}
+
+}
+
+}
+
+
+
+
 int main()
 {
 	//filters::test("filters_2.jpg");
 
-	morphology::test("morphology.jpg");
+	//morphology::eorde_and_dilate::test("morphology.jpg");
+
+	morphology::comprehensive::test("captain_america.jpg");
 }
