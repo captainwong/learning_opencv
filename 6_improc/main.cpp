@@ -10,6 +10,7 @@
 #include <functional>
 #include <vector>
 #include <iomanip>
+#include <random>
 
 using namespace std;
 using namespace cv;
@@ -246,6 +247,142 @@ void test(const char* img_name)
 }
 
 
+// 6.5
+namespace flood_fill {
+
+Mat src, dst, gray, mask;
+int fill_mode = 1;
+int low_diff = 20, up_diff = 20;
+int connectivity = 4;
+bool is_color = true;
+bool use_mask = false;
+int new_mask_val = 255;
+
+auto win_name = "result";
+auto win_mask = "mask";
+
+void on_mouse(int e, int x, int y, int, void*)
+{
+	if (e != EVENT_LBUTTONDOWN) {
+		return;
+	}
+
+	Point seed(x, y);
+	int ld = fill_mode == 0 ? 0 : low_diff;
+	int ud = fill_mode == 0 ? 0 : up_diff;
+	int flags = connectivity | (new_mask_val << 8) | (fill_mode == 1 ? FLOODFILL_FIXED_RANGE : 0);
+
+	mt19937 engine;
+	uniform_int_distribution<int> dist(0, 255);
+	
+	int r = dist(engine);
+	int g = dist(engine);
+	int b = dist(engine);
+
+	Mat d = is_color ? dst : gray;
+
+	Scalar new_color = is_color ? Scalar(b, g, r) : Scalar(r*0.299 + g*0.587 + b*0.114);
+
+	int area = 0; 
+
+	if (use_mask) {
+		threshold(mask, mask, 1, 128, THRESH_BINARY);
+		area = floodFill(d, mask, seed, new_color, nullptr,
+						 Scalar(ld, ld, ld), Scalar(ud, ud, ud), flags);
+		imshow(win_mask, mask);
+	} else {
+		area = floodFill(d, seed, new_color, nullptr,
+						 Scalar(ld, ld, ld), Scalar(ud, ud, ud), flags);
+	}
+
+	imshow(win_name, d);
+	cout << area << " pixels repainted" << endl;
+}
+
+void test(const char* img_name)
+{
+	src = imread(img_name);
+	src.copyTo(dst);
+	cvtColor(src, gray, COLOR_BGR2GRAY);
+	mask.create(src.rows + 2, src.cols + 2, CV_8UC1);
+
+	namedWindow(win_name);
+	createTrackbar("low difference", win_name, &low_diff, 255);
+	createTrackbar("up difference", win_name, &up_diff, 255);
+
+	setMouseCallback(win_name, on_mouse);
+
+	while (true) {
+		imshow(win_name, is_color ? dst : gray);
+
+		int c = waitKey();
+		if ((c & 255) == 27) {
+			break;
+		}
+
+		switch (c) {
+		case '1': // color/gray
+			if (is_color) {
+				cout << "switched to gray mode" << endl;
+				cvtColor(src, gray, COLOR_BGR2GRAY);
+			} else {
+				cout << "switched to color mode" << endl;
+				src.copyTo(dst);
+			}
+			mask = Scalar::all(0);
+			is_color = !is_color;
+			break;
+
+		case '2': // diplay/hide mask
+			if (use_mask) {
+				destroyWindow(win_mask);
+			} else {
+				namedWindow(win_mask);
+				mask = Scalar::all(0);
+				imshow(win_mask, mask);
+			}
+			use_mask = !use_mask;
+			break;
+
+		case '3': // restore origin image
+			cout << "restore to origin image" << endl;
+			src.copyTo(dst);
+			cvtColor(dst, gray, COLOR_BGR2GRAY);
+			mask = Scalar::all(0);
+			break;
+
+		case '4': // flood fill with empty range
+			cout << "flood fill with empty range" << endl;
+			fill_mode = 0;
+			break;
+
+		case '5': // 
+			cout << "flood fill with linear/fixed range" << endl;
+			fill_mode = 1;
+			break;
+
+		case '6': 
+			cout << "flood fill with linear/float range" << endl;
+			fill_mode = 2;
+			break;
+
+		case '7':
+			cout << "set connectivity to 4" << endl;
+			connectivity = 4;
+			break;
+
+		case '8':
+			cout << "set connectivity to 8" << endl;
+			connectivity = 8;
+			break;
+
+		default:
+			break;
+		}
+	}
+}
+
+}
 
 
 int main()
@@ -254,5 +391,7 @@ int main()
 
 	//morphology::eorde_and_dilate::test("morphology.jpg");
 
-	morphology::comprehensive::test("captain_america.jpg");
+	//morphology::comprehensive::test("captain_america.jpg");
+
+	flood_fill::test("flood_fill.jpg");
 }
