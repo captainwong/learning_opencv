@@ -525,8 +525,8 @@ void test()
 	//resizeWindow(winname_result, 800, 600);
 	//moveWindow(winname_result, 805, 0);
 	moveWindow(winname_result, g_src.cols, 0);
-	createTrackbar("contrast: ", winname_result, &g_contrast, 300, on_track_bar);
-	createTrackbar("bright  : ", winname_result, &g_bright, 200, on_track_bar);
+	createTrackbar("contrast", winname_result, &g_contrast, 300, on_track_bar);
+	createTrackbar("bright", winname_result, &g_bright, 200, on_track_bar);
 
 	on_track_bar(0, nullptr);
 	while ('q' != waitKey());

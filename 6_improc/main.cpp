@@ -96,23 +96,23 @@ void test(const char* img_name)
 	imshow("origin", g_src);
 
 	namedWindow(win_box);
-	createTrackbar("kernel: ", win_box, &g_box, 40, on_box);
+	createTrackbar("kernel", win_box, &g_box, 40, on_box);
 	on_box(g_box, nullptr);
 
 	namedWindow(win_mean);
-	createTrackbar("kernel: ", win_mean, &g_mean, 40, on_mean);
+	createTrackbar("kernel", win_mean, &g_mean, 40, on_mean);
 	on_mean(g_mean, nullptr);
 
 	namedWindow(win_gaussian);
-	createTrackbar("kernel: ", win_gaussian, &g_gaussian, 40, on_gaussian);
+	createTrackbar("kernel", win_gaussian, &g_gaussian, 40, on_gaussian);
 	on_gaussian(g_gaussian, nullptr);
 
 	namedWindow(win_median);
-	createTrackbar("param: ", win_median, &g_median, 50, on_median);
+	createTrackbar("param", win_median, &g_median, 50, on_median);
 	on_median(g_median, nullptr);
 
 	namedWindow(win_bilateral);
-	createTrackbar("param: ", win_bilateral, &g_bilateral, 50, on_bilateral);
+	createTrackbar("param", win_bilateral, &g_bilateral, 50, on_bilateral);
 	on_bilateral(g_bilateral, nullptr);
 
 	while ('q' != waitKey());
@@ -451,6 +451,50 @@ void test(const char* img_name)
 }
 
 
+// 6.7 
+namespace image_threshhold {
+
+auto win_name = "result";
+
+int threshhold_val = 100;
+int threshhold_type = 3;
+
+Mat src, gray, dst;
+
+void on_trackbar(int, void*)
+{
+	static const char* types[] = {
+		"THRESH_BINARY",
+		"THRESH_BINARY_INV",
+		"THRESH_TRUNC",
+		"THRESH_TOZERO",
+		"THRESH_TOZERO_INV"
+	};
+
+	cout << "applying threshhold mode " << threshhold_type << " " << types[threshhold_type] << endl;
+
+	threshold(gray, dst, threshhold_val, 255, threshhold_type);
+	imshow(win_name, dst);
+}
+
+void test(const char* img_name)
+{
+	src = imread(img_name);
+	imshow("origin", src);
+
+	cvtColor(src, gray, COLOR_BGR2GRAY);
+
+	namedWindow(win_name);
+	createTrackbar("mode", win_name, &threshhold_type, 4, on_trackbar);
+	createTrackbar("value", win_name, &threshhold_val, 255, on_trackbar);
+
+	on_trackbar(0, nullptr);
+
+	while (27 != waitKey(20));
+}
+
+}
+
 int main()
 {
 	//filters::test("filters_2.jpg");
@@ -461,5 +505,7 @@ int main()
 
 	//flood_fill::test("flood_fill.jpg");
 
-	image_pyramid::test("pyramid.jpg");
+	//image_pyramid::test("pyramid.jpg");
+
+	image_threshhold::test("threshhold.jpg");
 }
