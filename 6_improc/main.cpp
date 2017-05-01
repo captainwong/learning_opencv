@@ -120,7 +120,7 @@ void test(const char* img_name)
 
 }
 
-
+// 6.3 & 6.4
 namespace morphology {
 
 // 6.3
@@ -385,6 +385,72 @@ void test(const char* img_name)
 }
 
 
+// 6.6
+namespace image_pyramid {
+
+auto win_name = "result";
+
+Mat src, dst, tmp;
+
+void test(const char* img_name)
+{
+	src = imread(img_name);
+	namedWindow(win_name);
+	imshow(win_name, src);
+
+	tmp = src;
+	dst = tmp;
+
+	while (true) {
+		int key = waitKey(9);
+
+		switch (key) {
+		case 27:
+		case 'q':
+			return;
+			break;
+
+		case 'a':
+		case '3':
+			pyrUp(tmp, dst, Size(tmp.cols * 2, tmp.rows * 2));
+			cout << "pyrUp, size*2" << endl;
+			break;
+
+		case 'w':
+		case '1':
+			resize(tmp, dst, Size(tmp.cols * 2, tmp.rows * 2));
+			cout << "resize, size*2" << endl;
+			break;
+
+		case 'd':
+		case '4':
+			pyrDown(tmp, dst, Size(tmp.cols / 2, tmp.rows / 2));
+			cout << "pyrDown, size/2" << endl;
+			break;
+
+		case 's':
+		case '2':
+			resize(tmp, dst, Size(tmp.cols / 2, tmp.rows / 2));
+			cout << "resize, size/2";
+			break;
+
+		case 'r': // reset
+			dst = src;
+			break;
+
+		default:
+			break;
+		}
+
+		imshow(win_name, dst);
+		tmp = dst;
+	}
+}
+
+
+}
+
+
 int main()
 {
 	//filters::test("filters_2.jpg");
@@ -393,5 +459,7 @@ int main()
 
 	//morphology::comprehensive::test("captain_america.jpg");
 
-	flood_fill::test("flood_fill.jpg");
+	//flood_fill::test("flood_fill.jpg");
+
+	image_pyramid::test("pyramid.jpg");
 }
