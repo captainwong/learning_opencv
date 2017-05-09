@@ -204,12 +204,149 @@ void test_hough_circles(const char* img)
 
 }
 
+
+// 7.3
+namespace remap_test {
+
+Mat src, dst, map_x, map_y;
+
+void update_map(int key)
+{
+	for (int row = 0; row < src.rows; row++) {
+		for (int col = 0; col < src.cols; col++) {
+			switch (key) {
+			case '1':
+				if (col > src.cols*0.25 && col <src.cols*0.75 &&
+					row > src.rows*0.25 && row < src.rows*0.75) {
+					map_x.at<float>(row, col) = static_cast<float>(2 * (col - src.cols*0.25) + 0.5);
+					map_y.at<float>(row, col) = static_cast<float>(2 * (row - src.rows*0.25) + 0.5);
+				} else {
+					map_x.at<float>(row, col) = 0;
+					map_y.at<float>(row, col) = 0;
+				}
+				break;
+
+			case '2':
+				map_x.at<float>(row, col) = static_cast<float>(col);
+				map_y.at<float>(row, col) = static_cast<float>(src.rows - row);
+				break;
+
+			case '3':
+				map_x.at<float>(row, col) = static_cast<float>(src.cols - col);
+				map_y.at<float>(row, col) = static_cast<float>(row);
+				break;
+
+			case '4':
+				map_x.at<float>(row, col) = static_cast<float>(src.cols - col);
+				map_y.at<float>(row, col) = static_cast<float>(src.rows - row);
+				break;
+
+			default:
+				break;
+			}
+		}
+	}
+}
+
+void test(const char* img)
+{
+	src = imread(img);
+	dst.create(src.size(), src.type());
+	map_x.create(src.size(), CV_32FC1);
+	map_y.create(src.size(), CV_32FC1);
+
+	imshow("origin", src);
+
+	while (true) {
+		int key = waitKey();
+		if (key == 27) {
+			break;
+		}
+
+		update_map(key);
+
+		remap(src, dst, map_x, map_y, CV_INTER_LINEAR);
+		imshow("result", dst);
+
+	}
+}
+
+}
+
+
+// 7.4
+namespace affine_transformation {
+
+void test(const char* img)
+{
+	auto win = "origin";
+	auto win_warp = "warp";
+	auto win_warp_rotate = "warp & rotate";
+
+	Point2f src_triangle[3], dst_triangle[3];
+	Mat rot(2, 3, CV_32FC1);
+	Mat warp(2, 3, CV_32FC1);
+	Mat src, dst_warp, dst_warp_rotate;
+
+	src = imread("affine.jpg");
+	dst_warp = Mat::zeros(src.size(), src.type());
+
+	src_triangle[0] = Point2f(0, 0);
+	src_triangle[1] = Point2f(static_cast<float>(src.cols - 1), 0);
+	src_triangle[2] = Point2f(0, static_cast<float>(src.rows - 1));
+
+	dst_triangle[0] = Point2f(0, static_cast<float>(src.rows*0.33));
+	dst_triangle[1] = Point2f(static_cast<float>(src.cols*0.65), static_cast<float>(src.rows*0.35));
+	dst_triangle[2] = Point2f(static_cast<float>(src.cols*0.15), static_cast<float>(src.rows*0.6));
+
+	warp = getAffineTransform(src_triangle, dst_triangle);
+	warpAffine(src, dst_warp, warp, dst_warp.size());
+
+	Point center = Point(dst_warp.cols / 2, dst_warp.rows / 2);
+	double angle = -30.0;
+	double scale = 0.8;
+	
+	rot = getRotationMatrix2D(center, angle, scale);
+	warpAffine(dst_warp, dst_warp_rotate, rot, dst_warp.size());
+
+	imshow(win, src);
+	imshow(win_warp, dst_warp);
+	imshow(win_warp_rotate, dst_warp_rotate);
+
+	waitKey();
+}
+
+}
+
+
+// 7.5
+namespace equalize_hist {
+
+void test(const char* img)
+{
+	Mat src, dst;
+	src = imread(img, CV_LOAD_IMAGE_GRAYSCALE);
+	equalizeHist(src, dst);
+	imshow("origin", src);
+	imshow("result", dst);
+	waitKey();
+}
+
+}
+
+
 int main()
 {
 	//edge_detect::test_laplacian("laplacian.jpg");
 	//edge_detect::test_scharr("scharr.jpg");
 	//edge_detect::test("canny.jpg");
 
-	hough_transform::test_hough_lines("hough.jpg");
-	hough_transform::test_hough_circles("circle.jpg");
+	//hough_transform::test_hough_lines("hough.jpg");
+	//hough_transform::test_hough_circles("circle.jpg");
+
+	//remap_test::test("remap.jpg");
+
+	//affine_transformation::test("affine.jpg");
+
+	equalize_hist::test("equalize.jpg");
 }
