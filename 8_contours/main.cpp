@@ -174,10 +174,126 @@ void test(const char* img)
 // 8.3
 namespace convex_bounding {
 
-// 8.3.6
-namespace rect_bounding {
+void basic_test()
+{
+	Mat img(800, 800, CV_8UC3);
+	mt19937 rng;
+	uniform_int_distribution<int> dist_cnt(3, 100);
+	uniform_int_distribution<int> dist_clr(0, 255);
+	uniform_int_distribution<int> dist_x(img.cols / 4, img.cols * 3 / 4);
+	uniform_int_distribution<int> dist_y(img.rows / 4, img.rows * 3 / 4);	
+
+	while (true) {
+		int count = dist_cnt(rng);
+		vector<Point> pts;
+
+		for (int i = 0; i < count; i++) {
+			pts.push_back(Point(dist_x(rng), dist_y(rng)));
+		}
+
+		// rect bounding
+		{
+			RotatedRect box = minAreaRect(pts);
+			Point2f vertex[4] = {};
+			box.points(vertex);
+
+			img = Scalar::all(0);
+
+			for (int i = 0; i < count; i++) {
+				circle(img, pts[i], 3, Scalar(dist_clr(rng), dist_clr(rng), dist_clr(rng)), FILLED, LINE_AA);
+			}
+
+			for (int i = 0; i < 4; i++) {
+				line(img, vertex[i], vertex[(i + 1) % 4], Scalar(128, 128, 128), 1, LINE_AA);
+			}
+
+			imshow("rect bounding", img);
+		}
+
+		// circlr bounding
+		{
+			Point2f center;
+			float radius = 0.0f;
+			minEnclosingCircle(pts, center, radius);
+
+			img = Scalar::all(0);
+			for (int i = 0; i < count; i++) {
+				circle(img, pts[i], 3, Scalar(dist_clr(rng), dist_clr(rng), dist_clr(rng)), FILLED, LINE_AA);
+			}
+
+			circle(img, center, cvRound(radius), Scalar(128, 128, 128), 1, LINE_AA);
+
+			imshow("circle bounding", img);
+		}
+
+		if (27 == waitKey()) {
+			break;
+		}
+	}
+}
 
 
+// 8.3.8
+namespace comprehensive_test {
+
+auto win = "origin";
+auto win_intermedia = "intermedia";
+auto win_result = "comprehensive bounding test";
+
+Mat src, gray;
+int thresh = 50;
+const int max_thresh = 255;
+mt19937 rng;
+uniform_int_distribution<int> dist_clr(0, 255);
+
+void on_trackbar(int = 0, void* = nullptr)
+{
+	Mat out;
+	vector<vector<Point>> contours;
+	vector<Vec4i> hierarchy;
+
+	threshold(gray, out, thresh, max_thresh, THRESH_BINARY);
+	imshow(win_intermedia, out);
+
+	findContours(out, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE);
+
+	vector<vector<Point>> poly(contours.size());
+	vector<Rect> bound(contours.size());
+	vector<Point2f> center(contours.size());
+	vector<float> radius(contours.size());
+
+	for (size_t i = 0; i < contours.size(); i++) {
+		approxPolyDP(contours[i], poly[i], 3, true);
+		bound[i] = boundingRect(poly[i]);
+
+		minEnclosingCircle(poly[i], center[i], radius[i]);
+	}
+
+	Mat result = Mat::zeros(out.size(), CV_8UC3);
+	for (size_t i = 0; i < contours.size(); i++) {
+		auto color = Scalar(dist_clr(rng), dist_clr(rng), dist_clr(rng));
+		drawContours(result, poly, i, color, 1, LINE_AA, noArray(), 0);
+		rectangle(result, bound[i], color, 1, LINE_AA);
+		circle(result, center[i], static_cast<int>(radius[i]), color, 1, LINE_AA);
+	}
+
+	imshow(win_result, result);
+}
+
+void test(const char* img)
+{
+	src = imread(img);
+	cvtColor(src, gray, COLOR_BGR2GRAY);
+	blur(gray, gray, Size(3, 3));
+
+	namedWindow(win);
+	imshow(win, src);
+	createTrackbar("thresh", win, &thresh, max_thresh, on_trackbar);
+
+	on_trackbar();
+
+	waitKey();
+}
 
 }
 
@@ -188,5 +304,8 @@ int main()
 	//contour_test::test("contour.jpg");
 
 	//convex_hull_test::basic_test::test();
-	convex_hull_test::comprehensive_test::test("convexhull.jpg");
+	//convex_hull_test::comprehensive_test::test("convexhull.jpg");
+
+	//convex_bounding::basic_test();
+	convex_bounding::comprehensive_test::test("bounding.jpg");
 }
