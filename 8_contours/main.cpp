@@ -299,6 +299,84 @@ void test(const char* img)
 
 }
 
+
+// 8.4 
+namespace image_moments {
+
+Mat src, gray;
+int thresh = 100;
+const int max_thresh = 255;
+
+mt19937 rng;
+uniform_int_distribution<int> dist(0, 255);
+
+void on_trackbar(int = 0, void* = nullptr)
+{
+	Mat out;
+	vector<vector<Point>> contours;
+	vector<Vec4i> hierachy;
+
+	// detect edges using canny
+	Canny(gray, out, thresh, thresh * 2);
+	// find contours
+	findContours(out, contours, hierachy, RETR_TREE, CHAIN_APPROX_SIMPLE);
+
+	// get the moments
+	vector<Moments> mu(contours.size());
+	for (size_t i = 0; i < contours.size(); i++) {
+		mu[i] = moments(contours[i], false);
+	}
+
+	// get the mass center
+	vector<Point2f> mc(contours.size());
+	for (size_t i = 0; i < contours.size(); i++) {
+		mc[i] = Point2f(static_cast<float>(mu[i].m10 / mu[i].m00), 
+						static_cast<float>(mu[i].m01 / mu[i].m00));
+	}
+
+	// draw contours
+	Mat drawing = Mat::zeros(out.size(), out.type());
+	for (size_t i = 0; i < contours.size(); i++) {
+		Scalar color(dist(rng), dist(rng), dist(rng));
+		drawContours(drawing, contours, i, color, 2, LINE_8, hierachy, 0);
+		circle(drawing, mc[i], 4, color, FILLED, LINE_8);
+	}
+
+	auto win = "Contours";
+	namedWindow(win);
+	imshow(win, drawing);
+
+	// calculate the area with the moments 00 and compare with the result of the OpenCV function
+	cout << "\t Info: Area and Contour Length" << endl;
+	for (size_t i = 0; i < contours.size(); i++) {
+		cout << " * Contour[" << i <<
+			"] - Area (M_00): " << mu[i].m00 <<
+			" - Area OpenCV: " << contourArea(contours[i]) <<
+			" - Length: " << arcLength(contours[i], true) << endl;
+		Scalar color(dist(rng), dist(rng), dist(rng));
+		drawContours(drawing, contours, i, color, 2, LINE_8, hierachy, 0);
+		circle(drawing, mc[i], 4, color, FILLED, LINE_8);
+	}
+}
+
+void test(const char* img)
+{
+	src = imread(img);
+	cvtColor(src, gray, COLOR_BGR2GRAY);
+	blur(gray, gray, Size(3, 3));
+
+	auto win = "origin";
+	namedWindow(win);
+	imshow(win, src);
+
+	createTrackbar("Canny Thresh:", win, &thresh, max_thresh, on_trackbar);
+	on_trackbar();
+	waitKey();
+}
+
+}
+
+
 int main()
 {
 	//contour_test::test("contour.jpg");
@@ -307,5 +385,7 @@ int main()
 	//convex_hull_test::comprehensive_test::test("convexhull.jpg");
 
 	//convex_bounding::basic_test();
-	convex_bounding::comprehensive_test::test("bounding.jpg");
+	//convex_bounding::comprehensive_test::test("bounding.jpg");
+
+	image_moments::test("moments.jpg");
 }
