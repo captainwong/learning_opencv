@@ -482,6 +482,63 @@ void test(const char* img)
 }
 
 
+// 8.6
+namespace image_inpainting {
+
+auto win = "origin";
+auto win2 = "inpainted";
+
+Mat src, mask;
+
+Point prevpt(-1, -1);
+
+void on_mouse(int e, int x, int y, int flags, void* = nullptr)
+{
+	if (e == EVENT_LBUTTONUP || !(flags & EVENT_FLAG_LBUTTON)) {
+		prevpt = Point(-1, -1);
+	} else if (e == EVENT_LBUTTONDOWN) {
+		prevpt = Point(x, y);
+	} else if (e == EVENT_MOUSEMOVE && (flags & EVENT_FLAG_LBUTTON)) {
+		Point pt(x, y);
+		if (prevpt.x < 0) {
+			prevpt = pt;
+		}
+
+		line(mask, prevpt, pt, Scalar::all(255), 5, LINE_8);
+		line(src, prevpt, pt, Scalar::all(255), 5, LINE_8);
+		prevpt = pt;
+		imshow(win, src);
+	}
+}
+
+void test(const char* img)
+{
+	Mat s = imread(img);
+	src = s.clone();
+	mask = Mat::zeros(src.size(), CV_8U);
+	imshow(win, src);
+
+	setMouseCallback(win, on_mouse);
+
+	while (true) {
+		int c = waitKey();
+		if (c == 27)break;
+
+		if (c == '2') {
+			mask = Scalar::all(0);
+			s.copyTo(src);
+			imshow(win, src);
+		} else if (c == '1' || c == ' ') {
+			Mat mat;
+			inpaint(src, mask, mat, 3, INPAINT_TELEA);
+			imshow(win2, mat);
+		}
+	}
+}
+
+}
+
+
 int main()
 {
 	//contour_test::test("contour.jpg");
@@ -494,5 +551,7 @@ int main()
 
 	//image_moments::test("moments.jpg");
 
-	watershed_test::test("watershed.jpg");
+	//watershed_test::test("watershed.jpg");
+
+	image_inpainting::test("inpainting.jpg");
 }
