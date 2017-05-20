@@ -377,6 +377,111 @@ void test(const char* img)
 }
 
 
+// 8.5
+namespace watershed_test {
+
+auto win = "Watershed";
+
+Mat src, mask;
+Point prevpt(-1, -1);
+mt19937 rng;
+uniform_int_distribution<int> dist(0, 255);
+
+void on_mouse(int e, int x, int y, int flags = 0, void* = nullptr)
+{
+	if (x < 0 || x >= src.cols || y < 0 || y >= src.rows)return;
+
+	if (e == EVENT_LBUTTONUP || !(flags & EVENT_FLAG_LBUTTON)) {
+		prevpt = Point(-1, -1);
+	} else if (e == EVENT_LBUTTONDOWN) {
+		prevpt = Point(x, y);
+	} else if (e == EVENT_MOUSEMOVE && (flags & EVENT_FLAG_LBUTTON)) {
+		Point pt(x, y);
+		if (prevpt.x < 0) {
+			prevpt = pt;
+		}
+
+		line(mask, prevpt, pt, Scalar::all(255), 5, LINE_8);
+		line(src, prevpt, pt, Scalar::all(255), 5, LINE_8);
+		prevpt = pt;
+		imshow(win, src);
+	}
+
+
+}
+
+void test(const char* img)
+{
+	src = imread(img);
+	imshow(win, src);
+	Mat s, gray;
+	src.copyTo(s);
+	cvtColor(src, mask, COLOR_BGR2GRAY);
+	cvtColor(mask, gray, COLOR_GRAY2BGR);
+	mask = Scalar::all(0);
+
+	setMouseCallback(win, on_mouse);
+
+	while (true) {
+		int c = waitKey();
+		if (c == 27)break;
+
+		if (c == '2') {
+			mask = Scalar::all(0);
+			s.copyTo(src);
+			imshow(win, src);
+		} else if (c == '1' || c == ' ') {
+			vector<vector<Point>> contours;
+			vector<Vec4i> hierachy;
+
+			findContours(mask, contours, hierachy, RETR_CCOMP, CHAIN_APPROX_SIMPLE);
+			if (contours.empty())continue;
+
+			Mat m(mask.size(), CV_32S);
+			m = Scalar::all(0);
+
+			int comp_cnt = 0;
+			for (int index = 0; index >= 0; index = hierachy[index][0], comp_cnt++) {
+				drawContours(m, contours, index, Scalar::all(comp_cnt + 1), FILLED, LINE_8, hierachy);
+			}
+
+			if (comp_cnt == 0)continue;
+
+			vector<Vec3b> color_tab;
+			for (int i = 0; i < comp_cnt; i++) {
+				color_tab.push_back(Vec3b(dist(rng), dist(rng), dist(rng)));
+			}
+
+			auto tc = getTickCount();
+
+			watershed(s, m);
+			tc = getTickCount() - tc;
+			cout << "\tprocess time=" << tc*1000.0 / getTickFrequency() << "ms" << endl;
+
+			Mat w(m.size(), CV_8UC3);
+			for (int i = 0; i < m.rows; i++) {
+				for (int j = 0; j < m.cols; j++) {
+					int index = m.at<int>(i, j);
+					if (index == -1) {
+						w.at<Vec3b>(i, j) = Vec3b(255, 255, 255);
+					} else if (index <= 0 || index > comp_cnt) {
+						w.at<Vec3b>(i, j) = Vec3b(0, 0, 0);
+					} else {
+						w.at<Vec3b>(i, j) = color_tab[index - 1];
+					}
+
+				}
+			}
+
+			w = w*0.5 + gray*0.5;
+			imshow("watershed transform", w);
+		}
+	}
+}
+
+}
+
+
 int main()
 {
 	//contour_test::test("contour.jpg");
@@ -387,5 +492,7 @@ int main()
 	//convex_bounding::basic_test();
 	//convex_bounding::comprehensive_test::test("bounding.jpg");
 
-	image_moments::test("moments.jpg");
+	//image_moments::test("moments.jpg");
+
+	watershed_test::test("watershed.jpg");
 }
