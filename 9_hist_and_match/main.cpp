@@ -268,7 +268,70 @@ void test(const char* img)
 }
 
 
+// 9.5.3 
+namespace template_match {
+auto win = "origin";
+auto winr = "result";
 
+Mat src, template_, result;
+int match_method;
+
+
+const char* methods[] = {
+	"TM_SQDIFF 平方差匹配法",
+	"TM_SQDIFF_NORMED 归一化平方差匹配法",
+	"TM_CCORR 相关匹配法",
+	"TM_CCORR_NORMED 归一化相关匹配法",
+	"TM_CCOEFF 相关系数匹配法",
+	"TM_CCOEFF 归一化相关系数匹配法"
+};
+
+const int max_trackbar = 5;
+
+void on_trackbar(int = 0, void* = nullptr)
+{
+	Mat source = src.clone();
+
+	int result_rows = src.rows - template_.rows + 1;
+	int result_cols = src.cols - template_.cols + 1;
+	result.create(result_rows, result_cols, CV_32FC1);
+
+	matchTemplate(src, template_, result, match_method);
+	normalize(result, result, 0, 1, NORM_MINMAX, -1, noArray());
+
+	double minval, maxval;
+	Point minloc, maxloc;
+	Point matchloc;
+	minMaxLoc(result, &minval, &maxval, &minloc, &maxloc, noArray());
+
+	cout << "using method " << match_method << " " << methods[match_method] << endl;
+	if (match_method == TM_SQDIFF || match_method == TM_SQDIFF_NORMED) {
+		matchloc = minloc;
+	} else {
+		matchloc = maxloc;
+	}
+
+	rectangle(source, matchloc, Point(matchloc.x + template_.cols, matchloc.y + template_.rows), Scalar(0, 0, 255), 2, LINE_8);
+	rectangle(result, matchloc, Point(matchloc.x + template_.cols, matchloc.y + template_.rows), Scalar(0, 0, 255), 2, LINE_8);
+
+	imshow(win, source);
+	imshow(winr, result);
+}
+
+void test()
+{
+	src = imread("tm_origin.jpg");
+	template_ = imread("tm_template.jpg");
+	namedWindow(win);
+	namedWindow(winr);
+
+	createTrackbar("method", win, &match_method, max_trackbar, on_trackbar);
+	on_trackbar();
+
+	waitKey();
+}
+
+}
 
 
 int main()
@@ -281,5 +344,7 @@ int main()
 
 	//hist_comparision::test();
 
-	back_projection::test("backproj.jpg");
+	//back_projection::test("backproj.jpg");
+
+	template_match::test();
 }
