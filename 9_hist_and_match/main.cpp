@@ -15,6 +15,7 @@
 using namespace std;
 using namespace cv;
 
+
 // 9.2.3
 namespace hue_saturation_histogram {
 
@@ -60,6 +61,7 @@ void test(const char* img)
 }
 
 }
+
 
 // 9.2.4
 namespace one_dimension_histogram {
@@ -214,6 +216,61 @@ void test()
 }
 
 
+// 9.4.7
+namespace back_projection {
+auto win = "origin";
+Mat src, hsv, hue;
+int bins = 30;
+void on_trackbar(int = 0, void* = nullptr)
+{
+	Mat hist;
+	int hist_size = MAX(bins, 2);
+	float hue_range[] = { 0,180 };
+	const float* ranges[] = { hue_range };
+
+	calcHist(&hue, 1, nullptr, noArray(), hist, 1, &hist_size, ranges, true, false);
+	normalize(hist, hist, 0, 255, NORM_MINMAX, -1, noArray());
+
+	Mat backproj;
+	calcBackProject(&hue, 1, nullptr, hist, backproj, ranges, 1, true);
+
+	imshow("back project", backproj);
+	
+	int w = 400, h = 400;
+	int bin_w = cvRound(w*1.0 / hist_size);
+	Mat out = Mat::zeros(w, h, CV_8UC3);
+
+	for (int i = 0; i < bins; i++) {
+		rectangle(out, 
+				  Point(i*bin_w, h), 
+				  Point((i + 1)*bin_w,  h - cvRound(hist.at<float>(i)*h / 255.0)), 
+				  Scalar(100, 123, 255), FILLED);
+	}
+
+	imshow("histogram", out);
+}
+
+void test(const char* img)
+{
+	src = imread(img);
+	cvtColor(src, hsv, COLOR_BGR2HSV);
+	hue.create(hsv.size(), hsv.depth());
+	int ch[] = { 0, 0 };
+	mixChannels(&hsv, 1, &hue, 1, ch, 1);
+
+	namedWindow(win);
+	createTrackbar("hue bin", win, &bins, 180, on_trackbar);
+	on_trackbar();
+	imshow(win, src);
+	waitKey();
+}
+
+}
+
+
+
+
+
 int main()
 {
 	//hue_saturation_histogram::test("hs_histogram.jpg");
@@ -222,5 +279,7 @@ int main()
 
 	//rgb_histogram::test("rgb_histogram.jpg");
 
-	hist_comparision::test();
+	//hist_comparision::test();
+
+	back_projection::test("backproj.jpg");
 }
