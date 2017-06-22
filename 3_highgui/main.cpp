@@ -60,6 +60,7 @@ void test_img_load_show_output()
 	//Mat roi = dota(Rect(800, 350, logo.cols, logo.rows));
 	Mat roi = dota(Range(350, 350 + logo.rows), Range(800, 800 + logo.cols));
 	addWeighted(roi, 0.5, logo, 0.3, 0, roi);
+
 	roi = dota(Range(100, 100 + girl.rows), Range(350, 350 + girl.cols));
 	addWeighted(roi, 0.5, girl, 0.3, 0, roi);
 
@@ -211,11 +212,11 @@ int main()
 
 	//test_imwrite();
 
-	//test_img_load_show_output();
+	test_img_load_show_output();
 
 	//track_bar::test();
 
-	mouse_operation::test();
+	//mouse_operation::test();
 
 
 	system("pause");

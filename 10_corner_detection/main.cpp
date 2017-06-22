@@ -11,6 +11,7 @@
 #include <vector>
 #include <iomanip>
 #include <random>
+#include <sal.h>
 
 using namespace std;
 using namespace cv;
