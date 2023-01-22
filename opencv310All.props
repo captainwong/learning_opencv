@@ -3,9 +3,9 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-        <IncludePath>D:\dev_libs\opencv\build\include;$(IncludePath)</IncludePath>
-        <LibraryPath Condition="'$(Configuration)'=='Debug'">D:\dev_libs\opencv\build\lib\Debug;$(LibraryPath)</LibraryPath>
-        <LibraryPath Condition="'$(Configuration)'=='Release'">D:\dev_libs\opencv\build\lib\Release;$(LibraryPath)</LibraryPath>
+        <IncludePath>G:\dev_libs\opencv\build\include;$(IncludePath)</IncludePath>
+        <LibraryPath Condition="'$(Configuration)'=='Debug'">G:\dev_libs\opencv\build\lib\Debug;$(LibraryPath)</LibraryPath>
+        <LibraryPath Condition="'$(Configuration)'=='Release'">G:\dev_libs\opencv\build\lib\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
         <Link Condition="'$(Configuration)'=='Debug'">
